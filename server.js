@@ -1,5 +1,5 @@
-const { createServer} = require('http')
-const {Server} = require('socket.io')
+const { createServer } = require("http");
+const { Server } = require("socket.io");
 const express = require("express");
 const fileUpload = require("express-fileupload");
 const cookieParser = require("cookie-parser");
@@ -7,8 +7,8 @@ const app = express();
 require("dotenv").config();
 require("colors");
 
-const httpServer = createServer(app)
-global.io = new Server(httpServer)
+const httpServer = createServer(app);
+global.io = new Server(httpServer);
 
 // read json body data
 app.use(express.json());
@@ -16,6 +16,14 @@ app.use(express.json());
 app.use(fileUpload());
 //read cookies
 app.use(cookieParser());
+
+io.on("connection", (socket) => {
+  socket.on("client sends message", (msg) => {
+      socket.broadcast.emit("server sends message from client to admin", {
+        message: msg,
+      })
+  })
+})
 
 // apis
 app.get("/", (req, res) => {
