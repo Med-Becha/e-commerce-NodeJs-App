@@ -83,7 +83,7 @@ const updateOrderToDelivered = async (req, res, next) => {
 
 const getOrders = async (req, res, next) => {
     try {
-        const orders = await Order.find({}).populate("user","-password").sort({  createdAt: -1 , });
+        const orders = await Order.find({}).populate("user","-password").sort({ paymentMethod: "desc" });
         res.send(orders);
     } catch (err) {
         next(err)

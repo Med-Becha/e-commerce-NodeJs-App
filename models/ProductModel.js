@@ -18,12 +18,6 @@ const productSchema = mongoose.Schema({
         type: String,
         required: true,
     },
-    selected:{
-        type: Boolean,
-        default: false,
-        
-    }
-    ,
     count: {
         type: Number,
         required: true,

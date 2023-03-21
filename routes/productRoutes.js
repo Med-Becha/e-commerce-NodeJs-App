@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const {getProducts,selectedProducts, getProductById, getBestsellers, adminGetProducts, adminDeleteProduct, adminCreateProduct, adminUpdateProduct, adminUpload, adminDeleteProductImage} = require("../controllers/productController")
+const {getProducts, getProductById, getBestsellers, adminGetProducts, adminDeleteProduct, adminCreateProduct, adminUpdateProduct, adminUpload, adminDeleteProductImage} = require("../controllers/productController")
 
 const { verifyIsLoggedIn, verifyIsAdmin } = require("../middleware/verifyAuthToken")
 
@@ -10,7 +10,6 @@ router.get("/search/:searchQuery", getProducts)
 router.get("/", getProducts)
 router.get("/bestsellers", getBestsellers)
 router.get("/get-one/:id", getProductById)
-router.get("/selected", selectedProducts)
 
 // admin routes:
 router.use(verifyIsLoggedIn)
