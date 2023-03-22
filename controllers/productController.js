@@ -127,8 +127,8 @@ const getBestsellers = async (req, res, next) => {
       },
       { $replaceWith: "$doc_with_max_sales" },
       { $match: { sales: { $gt: 0 } } },
-      { $project: { _id: 1, name: 1, images: 1, category: 1, description: 1 } },
-      { $limit: 3 },
+      { $project: { _id: 1, name: 1, images: 1, category: 1 } },
+      { $limit: 5 },
     ]);
     res.json(products);
   } catch (err) {
@@ -140,7 +140,7 @@ const adminGetProducts = async (req, res, next) => {
   try {
     const products = await Product.find({})
       .sort({ category: 1 })
-      .select("name price category");
+      .select("name price category selected");
     return res.json(products);
   } catch (err) {
     next(err);
@@ -160,12 +160,20 @@ const adminDeleteProduct = async (req, res, next) => {
 const adminCreateProduct = async (req, res, next) => {
   try {
     const product = new Product();
-    const { name, description, count, price, category, attributesTable } =
-      req.body;
+    const {
+      name,
+      description,
+      selected,
+      count,
+      price,
+      category,
+      attributesTable,
+    } = req.body;
     product.name = name;
     product.description = description;
     product.count = count;
     product.price = price;
+    product.selected = selected;
     product.category = category;
     if (attributesTable.length > 0) {
       attributesTable.map((item) => {
@@ -186,12 +194,20 @@ const adminCreateProduct = async (req, res, next) => {
 const adminUpdateProduct = async (req, res, next) => {
   try {
     const product = await Product.findById(req.params.id).orFail();
-    const { name, description, count, price, category, attributesTable } =
-      req.body;
+    const {
+      name,
+      description,
+      selected,
+      count,
+      price,
+      category,
+      attributesTable,
+    } = req.body;
     product.name = name || product.name;
     product.description = description || product.description;
     product.count = count || product.count;
     product.price = price || product.price;
+    product.selected = selected || product.selected;
     product.category = category || product.category;
     if (attributesTable.length > 0) {
       product.attrs = [];
@@ -211,16 +227,16 @@ const adminUpdateProduct = async (req, res, next) => {
 };
 
 const adminUpload = async (req, res, next) => {
-    if (req.query.cloudinary === "true") {
-        try {
-            let product = await Product.findById(req.query.productId).orFail();
-            product.images.push({ path: req.body.url });
-            await product.save();
-        } catch (err) {
-            next(err);
-        }
-       return 
+  if (req.query.cloudinary === "true") {
+    try {
+      let product = await Product.findById(req.query.productId).orFail();
+      product.images.push({ path: req.body.url });
+      await product.save();
+    } catch (err) {
+      next(err);
     }
+    return;
+  }
   try {
     if (!req.files || !!req.files.images === false) {
       return res.status(400).send("No files were uploaded.");
@@ -235,7 +251,7 @@ const adminUpload = async (req, res, next) => {
     const { v4: uuidv4 } = require("uuid");
     const uploadDirectory = path.resolve(
       __dirname,
-      "../../frontend",
+      "../../client",
       "public",
       "images",
       "products"
@@ -268,19 +284,22 @@ const adminUpload = async (req, res, next) => {
 };
 
 const adminDeleteProductImage = async (req, res, next) => {
-    const imagePath = decodeURIComponent(req.params.imagePath);
-    if (req.query.cloudinary === "true") {
-        try {
-           await Product.findOneAndUpdate({ _id: req.params.productId }, { $pull: { images: { path: imagePath } } }).orFail(); 
-            return res.end();
-        } catch(er) {
-            next(er);
-        }
-        return
+  const imagePath = decodeURIComponent(req.params.imagePath);
+  if (req.query.cloudinary === "true") {
+    try {
+      await Product.findOneAndUpdate(
+        { _id: req.params.productId },
+        { $pull: { images: { path: imagePath } } }
+      ).orFail();
+      return res.end();
+    } catch (er) {
+      next(er);
     }
+    return;
+  }
   try {
     const path = require("path");
-    const finalPath = path.resolve("../frontend/public") + imagePath;
+    const finalPath = path.resolve("../client/public") + imagePath;
 
     const fs = require("fs");
     fs.unlink(finalPath, (err) => {
@@ -298,6 +317,15 @@ const adminDeleteProductImage = async (req, res, next) => {
   }
 };
 
+const getSelectedProducts = async (req, res) => {
+  try {
+    const products = await Product.find({ selected: true });
+
+    return res.json(products);
+  } catch (err) {
+    next(err);
+  }
+};
 module.exports = {
   getProducts,
   getProductById,
@@ -305,6 +333,7 @@ module.exports = {
   adminGetProducts,
   adminDeleteProduct,
   adminCreateProduct,
+  getSelectedProducts,
   adminUpdateProduct,
   adminUpload,
   adminDeleteProductImage,
