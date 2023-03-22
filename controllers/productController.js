@@ -207,7 +207,7 @@ const adminUpdateProduct = async (req, res, next) => {
     product.description = description || product.description;
     product.count = count || product.count;
     product.price = price || product.price;
-    product.selected = selected || product.selected;
+    product.selected = selected;
     product.category = category || product.category;
     if (attributesTable.length > 0) {
       product.attrs = [];
